@@ -1,0 +1,29 @@
+#Create Custom Container Image
+#Push to DockerHub Registry
+---
+- hosts: localhost
+  tasks: 
+
+  - name: remove artifact
+    shell: rm -rf /root/*.war
+    ignore_errors: yes
+
+  - name: Pull .war artifact from Artifactory
+    become: true
+    get_url:
+      url: http://192.168.1.245:8082/artifactory/webapp-libs-snapshot-local/webapp.war
+      dest: /root/
+      url_username: admin
+      url_password: P@ssw0rd
+
+  - name: remove docker image
+    command: docker rmi 192.168.1.212:5000/webapp
+    ignore_errors: yes
+
+  - name: Build image and with build args
+    command: docker build -t 192.168.1.212:5000/webapp .
+    args:
+      chdir: /root/
+    
+  - name: Push to docker registry
+    command: docker push 192.168.1.212:5000/webapp
