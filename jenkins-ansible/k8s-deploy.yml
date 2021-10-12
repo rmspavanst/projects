@@ -1,0 +1,15 @@
+---
+- hosts: 192.168.1.222
+  tasks:
+  
+  - name: delete the deployment
+    become: true
+    shell: kubectl delete deploy webapp && kubectl delete svc webapp-service
+    ignore_errors: yes
+  # Pause for 10 Sec/minutes to  deploy.
+  #- pause:
+  #    seconds: 10
+
+  - name: create the deployment
+    become: true
+    shell: kubectl apply -f /root/demo/deployment.yaml

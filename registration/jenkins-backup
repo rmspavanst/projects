@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    environment {
+        MY_ENV_VAR='' // not recommended, only for demonstration
+    }
+    stages {
+      stage('Tower') {
+            steps{
+                script{
+                    results=ansibleTower(
+                        importTowerLogs: true,
+                        importWorkflowChildLogs: false,
+                        jobTemplate: 'Demo Set Stats template',
+                        jobType: 'run',
+                        removeColor: false,
+                        templateType: 'job',
+                        throwExceptionWhenFail: false,
+                        towerCredentialsId: '5a55e074-d8c3-474e-b0de-c2f3af738c3c',
+                        towerServer: 'infra-ansible-tower',
+                        verbose: true
+                    )
+                    print(results['vm1']);
+                    print(results.vm2);
+                    $MY_ENV_VAR=results.toString(); // not recommended
+                }
+            }
+        }
+      stage('output'){
+          steps{
+              print(results['vm1']);
+              print(results.vm2);
+              echo $MY_ENV_VAR // not recommended
+          }
+      }
+    }
+}

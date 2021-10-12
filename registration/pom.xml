@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.12.RELEASE</version>
+  </parent>
+  
+  <groupId>org.systemizer</groupId>
+  <artifactId>MemberRegistration</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>MemberRegistration</name>
+  <description>MemberRegistration</description>
+  <packaging>war</packaging>
+
+  <dependencies>
+  <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+  
+<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.oracle.jdbc/ojdbc8 -->
+<dependency>
+    <groupId>com.oracle.database.jdbc</groupId>
+    <artifactId>ojdbc8</artifactId>
+    </dependency>
+    
+    <dependency>
+     <groupId>org.apache.tomcat.embed</groupId>
+     <artifactId>tomcat-embed-jasper</artifactId>
+   </dependency>
+  
+  <!-- https://mvnrepository.com/artifact/jstl/jstl -->
+<dependency>
+    <groupId>jstl</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+  
+  
+  </dependencies>
+  
+  <build>
+   <finalName>webapp</finalName>
+   <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                 <configuration>
+            <mainClass>org.systemizer.member.registration.MemberRegistrationApplication</mainClass>
+        </configuration>
+
+        <executions>
+            <execution>
+                <goals>
+                    <goal>repackage</goal>
+                </goals>
+            </execution>
+       </executions>
+            </plugin>
+        </plugins>
+  </build>
+  
+</project>
