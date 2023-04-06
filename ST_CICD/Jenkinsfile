@@ -130,9 +130,7 @@ pipeline {
                         sh "ssh -o StrictHostKeyChecking=no ec2-user@3.237.42.29 -C \"sudo kubectl apply -f nodePort.yaml\""
                         
                     }
-                }
-            
-        } 
-         
-   } 
+         }
+    } 
+  } 
 }
