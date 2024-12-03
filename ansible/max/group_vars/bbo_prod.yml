@@ -1,0 +1,20 @@
+BBO-ApacheService:
+path: "/app/apache/2.4.38/bin/"
+apacheStatus: "apachectl status"
+scriptPath: "apachectl stop"
+
+NTBS-BBO-BackOfficeManagedServer:
+  process: "BackOfficeManagedServer_1"
+  script: "/app/ebworx/bo/domains/NTBSBODomain/bin/stopNTBSBO.sh"
+
+NTBS-BBO-WebLogic:
+  process: "NTBSBOWeblogicServer"
+  script: "/app/ebworx/bo/domains/NTBSBODomain/bin/stopWebLogic.sh"
+
+FSC_BBO-BOServer:
+  process: "FSCUATBOServer_1"
+  script: "/app/scfadm/bo/domains/FSCBODomain/bin/stopManagedWebLogic.sh FSCUATBOServer_1"
+
+FSC_BBO-Weblogic:
+  process: "/app/scfadm/bo/domains/FSCBO"
+  script: "/app/scfadm/bo/domains/FSCBODomain/bin/stopWebLogic.sh"

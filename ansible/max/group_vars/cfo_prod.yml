@@ -1,0 +1,17 @@
+appName: CFO-FrontOfficeManagedServer
+process: "FrontOfficeManagedServer_1"
+dir: "/app/ebworx/fo/domains/NTBSFODomain/bin/"
+stop_cmd: "./stopNTBSFO.sh"
+
+CFO-MobileManagedServer:
+  process: "MobileManagedServer_1"
+  dir: "/app/ebworx/fo/domains/NTBSFODomain/bin/"
+  stop_cmd: "./stopNTBSMobile.sh"
+
+FSC-FOServer:
+  process: "FSCUATFOServer_1"
+  script: "/app/scfadm/fo/domains/FSCFODomain/bin/stopManagedWebLogic.sh FSCUATFOServer_1 t3://localhost:9500"
+
+FSC-WebLogic:
+  process: "FSCFOWeblogicserver"
+  script: "/app/scfadm/fo/domains/FSCFODomain/bin/stopWebLogic.sh"
