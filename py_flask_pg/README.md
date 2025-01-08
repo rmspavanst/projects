@@ -33,6 +33,23 @@ How to Alter Sequence in PostgreSQL
 To alter the sequence so that IDs start a different number, you can't just do an update, you have to use the alter sequence command.
 
 alter sequence students_id_seq restart with 9;
+ALTER SEQUENCE students_id_seq RESTART WITH 1;
+ALTER TABLE students ADD CONSTRAINT unique_email UNIQUE (email);
+
+# troubleshoot
+\d students
+                                   Table "public.students"
+ Column |         Type          | Collation | Nullable |               Default
+--------+-----------------------+-----------+----------+--------------------------------------
+ id     | integer               |           | not null | nextval('students_id_seq'::regclass)
+ fname  | character varying(40) |           | not null |
+ lname  | character varying(40) |           | not null |
+ email  | character varying(40) |           | not null |
+Indexes:
+    "students_pkey" PRIMARY KEY, btree (id)
+    "unique_email" UNIQUE CONSTRAINT, btree (email)
+
+demo=> SELECT setval('students_id_seq', (SELECT MAX(id) FROM students));
 
 
 
@@ -316,6 +333,11 @@ if __name__ == "__main__":
 
 flask run --host 0.0.0.0 --port 5000 
 
+nohup python3 -m flask run --host=0.0.0.0 --port=5000 > logs_$(date +"%Y-%m-%d").log 2>&1 &
+nohup python3 -m flask run --host=0.0.0.0 --port=5000 > logs_$(date +"%Y-%m-%d_%H-%M-%S").log 2>&1 &
+
+ps aux | grep flask
+kill -9 <PID>
 
 # Create a Dockerfile for Your Flask Application
 
