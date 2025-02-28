@@ -1,0 +1,23 @@
+appName: NTBSBATCH
+process: "BatchManagedServer_1"
+dir: "/app/ebworx/batch/domains/NTBSBatchDomain/bin/"
+stop_cmd: "./stopNTBSBCH.sh"
+
+NTBSLMS:
+  process: "LMSManagedServer_1"
+  dir: "/app/ebworx/batch/domains/NTBSBatchDomain/bin/"
+  stop_cmd: "./stopNTBSLMS.sh"
+
+NTBSREPORT:
+  process: "RepertoireServer"
+  dir: "/app/ebworx/report/RepertoireServer/bin/"
+  stop_cmd: "./stopReportServer.sh"
+
+FSCBACKEND:
+  process: "pb-scf-spring-boot-core-1.1.0.jar"
+  script: "/app/scfadm/deployment/FSCBackend/deploy/bin/stop.sh"
+
+FSCBACKEND-activemq:
+  pid_file: "/app/scfadm/deployment/apache-activemq/data/activemq.pid"
+  activemq_bin_path: "/app/scfadm/deployment/apache-activemq/data/"
+  stop_cmd: "rm -f activemq.pid"

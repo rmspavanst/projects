@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Declartive: Checkout SCM') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Declartive: Tool install) {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Bild') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Unit Test') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Sonarqube Analysis') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Create Articat') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Publish Docker Iimage') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Approval') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Deploy Dev/Staging/Prod') {
+            steps {
+                echo 'Hello World'
+            }
+        }        
+    }
+}

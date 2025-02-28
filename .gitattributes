@@ -1,0 +1,1 @@
+terraform/azure/terraform-aks-nginx/.terraform/providers/registry.terraform.io/hashicorp/azurerm/3.117.0/windows_386/terraform-provider-azurerm_v3.117.0_x5.exe filter=lfs diff=lfs merge=lfs -text

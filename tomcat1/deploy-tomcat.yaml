@@ -1,0 +1,15 @@
+#Create Custom Container Image
+#Push to DockerHub Registry
+---
+- hosts: localhost
+  tasks: 
+
+
+  - name: Pull .war artifact from Artifactory
+    become: true
+    get_url:
+      url: http://192.168.1.245:8082/artifactory/webapp-libs-snapshot-local/demoapp.war
+      dest: /usr/local/tomcat10/webapps/
+      url_username: admin
+      url_password: P@ssw0rd
+

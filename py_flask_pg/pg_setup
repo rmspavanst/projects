@@ -1,0 +1,66 @@
+https://computingforgeeks.com/install-postgresql-14-on-rocky-linux-9/
+
+
+
+pgsync postgres://postgres:Passw0rd@192.168.0.111/sampledb::orders postgres://user:password@destination-host/destination-db::orders
+
+
+pgsync postgres://postgres:Passw0rd@192.168.0.111/sampledb postgres://postgres:Passw0rd@192.168.0.122/sampledb
+
+pgsync --from postgres://postgres:Passw0rd@192.168.0.111:5432/sampledb \
+--to postgres://postgres:Passw0rd@192.168.205.111:5432/sampledb
+
+
+
+sudo yum install epel-release
+sudo yum group install "Development Tools" 
+sudo yum install -y ruby ruby-devel rubygems postgresql-libs postgresql-devel
+
+ruby -v
+
+gem -v
+
+sudo dnf install /usr/include/libpq-fe.h
+
+sudo gem install pgsync
+
+
+
+pgsync --init
+
+vim ~/.pgsync.yml
+
+
+from: postgres://admin:Passw0rd@192.168.205.11:5432/testdb
+
+# destination database URL
+to: postgres://admin:Passw0rd@192.168.205.9:5432/testdb
+
+
+EX:  
+
+# we *highly recommend* you use sslmode=verify-full when possible
+# see https://ankane.org/postgres-sslmode-explained for more info
+from: postgres://admin:Passw0rd@192.168.205.11:5432/testdb
+
+# destination database URL
+to: postgres://admin:Passw0rd@192.168.205.9:5432/testdb
+to_safe: true
+# exclude tables
+# exclude:
+#   - table1
+#   - table2
+
+# define groups
+# groups:
+#   group1:
+#     - table1
+#     - table2
+
+
+
+pgsync --from postgres://postgres:Passw0rd@192.168.0.111:5432/sampledb --to postgres://postgres:Passw0rd@192.168.0.122:5432/sampledb --to-safe
+
+
+
+pgsync --from postgres://postgres:Passw0rd@192.168.0.122:5432/sampledb --to postgres://postgres:Passw0rd@192.168.0.111:5432/sampledb --to-safe

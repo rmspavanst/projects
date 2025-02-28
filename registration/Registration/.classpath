@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-16.0.2.7-hotspot">
+		<attributes>
+			<attribute name="module" value="true"/>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.5">
+		<attributes>
+			<attribute name="owner.project.facets" value="jst.web"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/tomcat-servlet-api-8.5.69.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jtransc-annotations-0.5.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jtransc-rt-0.5.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jtransc-rt-core-0.5.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/WebContent/WEB-INF/lib/postgresql-42.2.24.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jdbc-api-1.4.jar/jdbc-api-1.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jakarta.servlet-api-5.0.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jsp-api-2.2.jar/jsp-api-2.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/servlet-api-5.0.16.jar/servlet-api-5.0.16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jar_files (1)/tomcat-el-api-10.1.0-M5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jar_files (1)/tomcat-jsp-api-10.1.0-M5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/jar_files (1)/tomcat-servlet-api-10.1.0-M5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Systemizer/eclipse-workspace/Registration/Jar/ojdbc8.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>
