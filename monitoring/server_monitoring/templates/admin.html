@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Admin Panel</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label>User</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Pass</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Admin</label>
+            <input type="checkbox" name="is_admin" value="true">
+        </div>
+        <div class="form-group">
+            <label>Privileges</label><br>
+            <input type="checkbox" name="read" value="read"> Read All<br>
+            <input type="checkbox" name="privileges" value="reports"> Reports<br>
+            <input type="checkbox" name="privileges" value="register"> Register<br>
+            <input type="checkbox" name="privileges" value="dashboard:linux:prod:read"> Dashboard (Linux Prod Read)<br>
+            <input type="checkbox" name="privileges" value="dashboard:linux:prod:write"> Dashboard (Linux Prod Write)<br>
+            <input type="checkbox" name="privileges" value="dashboard:windows:dev:read"> Dashboard (Windows DEV Read)<br>
+            <input type="checkbox" name="privileges" value="dashboard:windows:dev:write"> Dashboard (Windows DEV Write)<br>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+    <h2 class="mt-4">Users</h2>
+    <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
+            <tr><th>ID</th><th>User</th><th>Admin</th><th>Privileges</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
+                <td>{{ user.privileges }}</td>
+                <td>
+                    <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#updateModal{{ user.id }}">Update</button>
+                    {% if not user.is_admin %}
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <button type="submit" name="delete" value="true" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            <div class="modal fade" id="updateModal{{ user.id }}" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Update {{ user.username }}</h5>
+                            <button type="button" class="close" data-dismiss="modal">×</button>
+                        </div>
+                        <form method="POST">
+                            <div class="modal-body">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <div class="form-group">
+                                    <label>User</label>
+                                    <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Pass</label>
+                                    <input type="password" name="password" class="form-control" value="{{ user.password }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Admin</label>
+                                    <input type="checkbox" name="is_admin" value="true" {% if user.is_admin %}checked{% endif %}>
+                                </div>
+                                <div class="form-group">
+                                    <label>Privileges</label><br>
+                                    <input type="checkbox" name="read" value="read" {% if 'read' in user.privileges.split(',') %}checked{% endif %}> Read All<br>
+                                    <input type="checkbox" name="privileges" value="reports" {% if 'reports' in user.privileges.split(',') %}checked{% endif %}> Reports<br>
+                                    <input type="checkbox" name="privileges" value="register" {% if 'register' in user.privileges.split(',') %}checked{% endif %}> Register<br>
+                                    <input type="checkbox" name="privileges" value="dashboard:linux:prod:read" {% if 'dashboard:linux:prod:read' in user.privileges.split(',') %}checked{% endif %}> Dashboard (Linux Prod Read)<br>
+                                    <input type="checkbox" name="privileges" value="dashboard:linux:prod:write" {% if 'dashboard:linux:prod:write' in user.privileges.split(',') %}checked{% endif %}> Dashboard (Linux Prod Write)<br>
+                                    <input type="checkbox" name="privileges" value="dashboard:windows:dev:read" {% if 'dashboard:windows:dev:read' in user.privileges.split(',') %}checked{% endif %}> Dashboard (Windows DEV Read)<br>
+                                    <input type="checkbox" name="privileges" value="dashboard:windows:dev:write" {% if 'dashboard:windows:dev:write' in user.privileges.split(',') %}checked{% endif %}> Dashboard (Windows DEV Write)<br>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" name="update" value="true" class="btn btn-primary">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

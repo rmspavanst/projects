@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block header %}Reports{% endblock %}
+
+{% block content %}
+<div class="reports">
+    <h2>Server Reports</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Platform</th>
+                <th>Environment</th>
+                <th>Operating System</th>
+                <th>Total Disk (GB)</th>
+                <th>Free Disk (GB)</th>
+                <th>Total RAM (GB)</th>
+                <th>CPU Count</th>
+                <th>Boot Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in servers %}
+            <tr>
+                <td>{{ server.ip_address }}</td>
+                <td>{{ server.platform }}</td>
+                <td>{{ server.environment }}</td>
+                <td>{{ server.operating_system }}</td>
+                <td>{{ server.total_disk_gb }}</td>
+                <td>{{ server.free_disk_gb }}</td>
+                <td>{{ server.total_ram_gb }}</td>
+                <td>{{ server.cpu_count }}</td>
+                <td>{{ server.boot_time }}</td>
+                <td class="status {{ 'active' if server.status else 'declined' }}">{{ 'Online' if server.status else 'Offline' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

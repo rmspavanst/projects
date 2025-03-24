@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Monitoring</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark d-md-none">
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+    <div class="sidebar collapse d-md-block" id="sidebarMenu">
+        <a href="{{ url_for('home') }}" class="d-none d-md-block"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo"></a>
+        <ul class="nav flex-column">
+            {% if current_user.is_authenticated %}
+            {% if current_user.is_admin or 'read' in current_user.privileges or 'register' in current_user.privileges %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+            {% endif %}
+            {% if current_user.is_admin or 'read' in current_user.privileges or 'dashboard' in current_user.privileges %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            {% endif %}
+            {% if current_user.is_admin or 'read' in current_user.privileges or 'reports' in current_user.privileges %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}">Reports</a></li>
+            {% endif %}
+            {% if current_user.is_admin %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin') }}">Admin</a></li>
+            {% endif %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+            {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    <main class="content">
+        {% if request.endpoint not in ['home', 'admin', 'register', 'dashboard', 'reports', 'login'] %}
+        <button onclick="history.back()" class="btn btn-secondary mb-3">Back</button>
+        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="modal fade" id="flashModal{{ loop.index }}" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-{{ 'success' if category == 'success' else 'warning' if category == 'warning' else 'danger' }}">
+                        <h5 class="modal-title text-white">{{ category.capitalize() }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ message }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function() {
+                $('#flashModal{{ loop.index }}').modal('show');
+                setTimeout(function() {
+                    $('#flashModal{{ loop.index }}').modal('hide');
+                }, 3000);
+            });
+        </script>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!-- templates/admin.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin Panel</h1>
+<form method="POST">
+    <label>Username:</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <label>Sandboxes:</label><br>
+    <input type="checkbox" name="sandboxes" value="AWS"> AWS<br>
+    <input type="checkbox" name="sandboxes" value="Azure"> Azure<br>
+    <input type="checkbox" name="sandboxes" value="Vagrant"> Vagrant<br>
+    <input type="checkbox" name="sandboxes" value="VMware"> VMware<br>
+    <input type="checkbox" name="sandboxes" value="Proxmox"> Proxmox<br><br>
+
+    <label>Admin:</label>
+    <input type="checkbox" name="is_admin"><br><br>
+
+    <button type="submit">Create User</button>
+</form>
+
+<h2>Users</h2>
+<table>
+    <tr>
+        <th>Username</th>
+        <th>Sandboxes</th>
+        <th>Admin</th>
+        <th>Actions</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.username }}</td>
+        <td>{{ user.sandboxes }}</td>
+        <td>{{ user.is_admin }}</td>
+        <td>
+            <a href="{{ url_for('update_user', id=user.id) }}">Update</a> |
+            {% if user.is_admin %}
+            <span style="color: gray;">Delete</span>
+            {% else %}
+            <a href="{{ url_for('delete_user', id=user.id) }}" onclick="return confirm('Are you sure?')">Delete</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

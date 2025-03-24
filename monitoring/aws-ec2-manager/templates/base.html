@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="us-ascii">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systemizer Technic Sandbox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="logo">
+            <a href="{{ url_for('select_sandbox') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo">
+            </a>
+        </div>
+        <div class="title">Systemizer Technic Sandbox Environment</div>
+        <div class="logout">
+            <a href="{{ url_for('logout') }}">🚪 Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

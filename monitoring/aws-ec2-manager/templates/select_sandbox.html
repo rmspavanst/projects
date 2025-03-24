@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="text-align: left; margin-left: 20px">Select the Sandbox Environment</h2>
+<div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; margin-left: 20px;  width: fit-content;">
+    <a href="{{ url_for('aws_sandbox') }}" class="sandbox-button">AWS Sandbox Environment</a>
+    <a href="{{ url_for('sandbox_environment', environment='proxmox') }}" class="sandbox-button">Proxmox Sandbox Environment</a>
+    <a href="{{ url_for('sandbox_environment', environment='vmware') }}" class="sandbox-button">VMware Sandbox Environment</a>
+    <a href="{{ url_for('sandbox_environment', environment='azure') }}" class="sandbox-button">Azure Sandbox Environment</a>
+    <a href="{{ url_for('sandbox_environment', environment='gcp') }}" class="sandbox-button">GCP Sandbox Environment</a>
+</div>
+{% endblock %}
+
+ 

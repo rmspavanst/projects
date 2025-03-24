@@ -1,0 +1,9 @@
+Flask
+psycopg2-binary
+Flask-SQLAlchemy
+Flask-Login
+paramiko
+reportlab
+pandas
+openpyxl
+pywinrm

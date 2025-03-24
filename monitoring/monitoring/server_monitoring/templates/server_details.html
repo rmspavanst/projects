@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Server Details: {{ server.hostname }}</h1>
+    <table class="table table-bordered">
+        <tr><th>Hostname</th><td>{{ server.hostname }}</td></tr>
+        <tr><th>IP Address</th><td>{{ server.ip_address }}</td></tr>
+        <tr><th>Platform</th><td>{{ server.platform }}</td></tr>
+        <tr><th>Operating System</th><td>{{ server.operating_system }}</td></tr>
+        <tr><th>Environment</th><td>{{ server.environment }}</td></tr>
+        <tr><th>Kernel</th><td>{{ server.kernel }}</td></tr>
+        <tr><th>Total Disk (GB)</th><td>{{ server.total_disk_gb }}</td></tr>
+        <tr><th>Free Disk (GB)</th><td>{{ server.free_disk_gb }}</td></tr>
+        <tr><th>Total RAM (GB)</th><td>{{ server.total_ram_gb }}</td></tr>
+        <tr><th>CPU Count</th><td>{{ server.cpu_count }}</td></tr>
+        <tr><th>Boot Time</th><td>{{ server.boot_time }}</td></tr>
+        <tr><th>Status</th><td style="color: {{ 'green' if server.status else 'red' }}">{{ 'On' if server.status else 'Off' }}</td></tr>
+    </table>
+</div>
+{% endblock %}

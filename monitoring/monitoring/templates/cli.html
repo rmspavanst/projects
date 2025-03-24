@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}CLI - {{ server.ip_address }}{% endblock %}
+
+{% block header %}CLI - {{ server.ip_address }}{% endblock %}
+
+{% block content %}
+<div class="cli">
+    {% if not session %}
+    <h2>Connect to Server</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Connect</button>
+    </form>
+    {% else %}
+    <h2>Execute Command</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="command">Command</label>
+            <input type="text" id="command" name="command" required>
+        </div>
+        <button type="submit">Execute</button>
+        <button type="submit" name="exit">Exit</button>
+    </form>
+    {% if output %}
+    <div class="output">
+        <h3>Output</h3>
+        <pre>{{ output }}</pre>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

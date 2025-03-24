@@ -1,0 +1,24 @@
+<!-- templates/update_user.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1>Update User</h1>
+<form method="POST">
+    <label>Username:</label><br>
+    <input type="text" name="username" value="{{ user.username }}" required><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password" value="{{ user.password }}" required><br><br>
+
+    <label>Sandboxes:</label><br>
+    <input type="checkbox" name="sandboxes" value="AWS" {% if 'AWS' in user.sandboxes.split(',') %}checked{% endif %}> AWS<br>
+    <input type="checkbox" name="sandboxes" value="Azure" {% if 'Azure' in user.sandboxes.split(',') %}checked{% endif %}> Azure<br>
+    <input type="checkbox" name="sandboxes" value="Vagrant" {% if 'Vagrant' in user.sandboxes.split(',') %}checked{% endif %}> Vagrant<br>
+    <input type="checkbox" name="sandboxes" value="VMware" {% if 'VMware' in user.sandboxes.split(',') %}checked{% endif %}> VMware<br>
+    <input type="checkbox" name="sandboxes" value="Proxmox" {% if 'Proxmox' in user.sandboxes.split(',') %}checked{% endif %}> Proxmox<br><br>
+
+    <label>Admin:</label>
+    <input type="checkbox" name="is_admin" {% if user.is_admin %}checked{% endif %}><br><br>
+
+    <button type="submit">Update User</button>
+</form>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">Dashboard</h1>
+    <div class="row">
+        <div class="col-12 col-md-4 mb-3">
+            <canvas id="platformChart" width="200" height="200"></canvas>
+        </div>
+        <div class="col-12 col-md-8">
+            <form method="POST" class="form-full">
+                <div class="row">
+                    <div class="col-12 col-sm-4 form-group">
+                        <label>Platform</label>
+                        <select name="platform" class="form-control">
+                            <option value="" {% if platform_filter == '' %}selected{% endif %}>All</option>
+                            <option value="Linux" {% if platform_filter == 'Linux' %}selected{% endif %}>Linux</option>
+                            <option value="Windows" {% if platform_filter == 'Windows' %}selected{% endif %}>Windows</option>
+                            <option value="Unix" {% if platform_filter == 'Unix' %}selected{% endif %}>Unix</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-4 form-group">
+                        <label>Environment</label>
+                        <select name="environment" class="form-control">
+                            <option value="" {% if env_filter == '' %}selected{% endif %}>All</option>
+                            <option value="prod" {% if env_filter == 'prod' %}selected{% endif %}>Prod</option>
+                            <option value="DR" {% if env_filter == 'DR' %}selected{% endif %}>DR</option>
+                            <option value="UAT" {% if env_filter == 'UAT' %}selected{% endif %}>UAT</option>
+                            <option value="DEV" {% if env_filter == 'DEV' %}selected{% endif %}>DEV</option>
+                            <option value="SIT" {% if env_filter == 'SIT' %}selected{% endif %}>SIT</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-4 form-group">
+                        <label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="" {% if status_filter == '' %}selected{% endif %}>All</option>
+                            <option value="On" {% if status_filter == 'On' %}selected{% endif %}>On</option>
+                            <option value="Off" {% if status_filter == 'Off' %}selected{% endif %}>Off</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+        </div>
+    </div>
+    {% if servers %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Hostname</th>
+                    <th>IP Address</th>
+                    <th>Platform</th>
+                    <th>Operating System</th>
+                    <th>Environment</th>
+                    <th>Kernel</th>
+                    <th>Total Disk (GB)</th>
+                    <th>Free Disk (GB)</th>
+                    <th>Total RAM (GB)</th>
+                    <th>CPU Count</th>
+                    <th>Boot Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for server in servers %}
+                <tr>
+                    <td>{{ server.hostname }}</td>
+                    <td><a href="{{ url_for('server_details', server_id=server.id) }}" class="ip-link" style="color: {{ 'green' if server.is_powered_on else 'red' }}; font-weight: bold;">{{ server.ip_address }}</a></td>
+                    <td>{{ server.platform }}</td>
+                    <td>{{ server.operating_system }}</td>
+                    <td>{{ server.environment }}</td>
+                    <td>{{ server.kernel }}</td>
+                    <td>{{ server.total_disk_gb }}</td>
+                    <td>{{ server.free_disk_gb }}</td>
+                    <td>{{ server.total_ram_gb }}</td>
+                    <td>{{ server.cpu_count }}</td>
+                    <td>{{ server.boot_time }}</td>
+                    <td style="color: {{ 'green' if server.is_powered_on else 'red' }}">{{ 'On' if server.is_powered_on else 'Off' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('platformChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: {{ platform_data.labels|tojson }},
+            datasets: [{
+                data: {{ platform_data.data|tojson }},
+                backgroundColor: ['#007bff', '#dc3545', '#28a745', '#ff5733']
+            }]
+        },
+        options: {
+            onClick: function(event, elements) {
+                if (elements.length > 0) {
+                    var label = chart.data.labels[elements[0].index];
+                    var platform = label.split(' ')[0];
+                    var status = label.includes('On') ? 'On' : 'Off';
+                    document.querySelector('select[name="platform"]').value = platform;
+                    document.querySelector('select[name="status"]').value = status;
+                    document.querySelector('form').submit();
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

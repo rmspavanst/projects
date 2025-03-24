@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Server Monitoring</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Server Monitoring</div>
+        <div class="navbar-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('register') }}">Register Servers</a>
+            <a href="{{ url_for('reports') }}">Reports</a>
+            <a href="{{ url_for('admin') }}">Admin</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <h2>Server Details</h2>
+        <table class="server-table">
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>Operating System</th>
+                    <th>Total Disk (GB)</th>
+                    <th>Free Disk (GB)</th>
+                    <th>Total RAM (GB)</th>
+                    <th>CPU Count</th>
+                    <th>Boot Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for server in servers %}
+                <tr>
+                    <td>{{ server.ip_address }}</td>
+                    <td>{{ server.operating_system }}</td>
+                    <td>{{ server.total_disk_gb }}</td>
+                    <td>{{ server.free_disk_gb }}</td>
+                    <td>{{ server.total_ram_gb }}</td>
+                    <td>{{ server.cpu_count }}</td>
+                    <td>{{ server.boot_time }}</td>
+                    <td class="{{ 'status-online' if server.status else 'status-offline' }}">{{ 'Online' if server.status else 'Offline' }}</td>
+                    <td>
+                        <a href="{{ url_for('modify_server', server_id=server.id) }}" class="btn btn-modify">Modify</a>
+                        <form action="{{ url_for('register') }}" method="post" style="display:inline;">
+                            <input type="hidden" name="delete" value="{{ server.id }}">
+                            <button type="submit" class="btn btn-delete">Delete</button>
+                        </form>
+                        <button onclick="updatePatches({{ server.id }})" class="btn btn-update">Update Patches</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function updatePatches(serverId) {
+            fetch(`/update_patches/${serverId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.message));
+        }
+    </script>
+</body>
+</html>

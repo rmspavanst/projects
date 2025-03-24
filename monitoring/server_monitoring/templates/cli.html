@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">CLI for {{ server.hostname }}</h1>
+    {% if not session %}
+    <form method="POST" class="form-full">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Connect</button>
+    </form>
+    {% else %}
+    <form method="POST" class="form-full">
+        <div class="form-group">
+            <label>Command</label>
+            <input type="text" name="command" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Run</button>
+    </form>
+    <form method="POST" class="form-full mt-2">
+        <button type="submit" name="exit" value="true" class="btn btn-secondary btn-lg btn-block">Exit CLI</button>
+    </form>
+    {% if output %}
+    <pre class="bg-light p-3 mt-3">{{ output }}</pre>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

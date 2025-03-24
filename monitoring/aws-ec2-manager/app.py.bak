@@ -1,0 +1,382 @@
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+import boto3
+import psycopg2
+from botocore.exceptions import ClientError
+from datetime import datetime, timedelta
+import time
+
+# Initialize the Flask app
+app = Flask(__name__)
+app.secret_key = 'os.urandom(24)'  # Replace with a secure random string in production
+
+# Enforce UTF-8 encoding for templates
+app.jinja_env.auto_reload = True
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# Database connection
+def get_db_connection():
+    return psycopg2.connect(
+        dbname="ec2_manager",
+        user="ec2_user",
+        password="aws",
+        host="localhost"
+    )
+
+# Function to update public IPs
+def update_public_ips():
+    ec2_client = boto3.client('ec2', region_name="ap-southeast-5")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Fetch all instances from the database where public_ip is 'pending'
+    cur.execute("SELECT instance_id FROM instances WHERE public_ip = 'pending'")
+    pending_instances = cur.fetchall()
+    for instance in pending_instances:
+        instance_id = instance[0]
+        # Describe the instance to get its public IP
+        try:
+            response = ec2_client.describe_instances(InstanceIds=[instance_id])
+            public_ip = response['Reservations'][0]['Instances'][0].get('PublicIpAddress', 'N/A')
+            # Update the database with the public IP
+            if public_ip != 'N/A':
+                cur.execute("""
+                    UPDATE instances
+                    SET public_ip = %s
+                    WHERE instance_id = %s
+                """, (public_ip, instance_id))
+        except ClientError as e:
+            print(f"Error fetching details for instance {instance_id}: {e}")
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Login route
+@app.route('/login', methods=['GET', 'POST'], endpoint='login')
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Simple hardcoded authentication (replace with a proper user database in production)
+        if username == 'admin' and password == 'password':
+            session['logged_in'] = True
+            return redirect(url_for('select_sandbox'))
+        else:
+            flash("Invalid credentials.", "error")
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+# Logout route
+@app.route('/logout', endpoint='logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+# Protect routes
+def login_required(f):
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Select Sandbox Environment route
+@app.route('/select-sandbox', endpoint='select_sandbox')
+@login_required
+def select_sandbox():
+    return render_template('select_sandbox.html')
+
+# AWS Sandbox Environment route
+@app.route('/aws-sandbox', endpoint='aws_sandbox')
+@login_required
+def aws_sandbox():
+    return redirect(url_for('index'))
+
+# Other Sandbox Environments route
+@app.route('/sandbox/<environment>', endpoint='sandbox_environment')
+@login_required
+def sandbox_environment(environment):
+    return render_template('coming_soon.html', environment=environment)
+
+# API endpoint to fetch instance data
+@app.route('/api/instances', methods=['GET'], endpoint='api_instances')
+@login_required
+def api_instances():
+    # Fetch all instances from the database
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT instance_id, instance_name, public_ip, ports, username, password, auto_terminate_time, launch_time
+        FROM instances
+    """)
+    db_instances = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # Calculate remaining time for each instance
+    instances = []
+    for instance in db_instances:
+        instance_id, instance_name, public_ip, ports, username, password, auto_terminate_time, launch_time = instance
+        expiration_time = launch_time + timedelta(hours=auto_terminate_time)
+        remaining_time = max(expiration_time - datetime.utcnow(), timedelta(0))  # Ensure no negative time
+        remaining_time_str = str(remaining_time).split('.')[0]  # Format as HH:MM:SS
+        instances.append({
+            'instance_id': instance_id,
+            'instance_name': instance_name,
+            'public_ip': public_ip,
+            'ports': ports,
+            'username': username,
+            'password': password,
+            'auto_terminate_time': auto_terminate_time,
+            'remaining_time': remaining_time_str
+        })
+    return jsonify(instances)
+
+# Main route
+@app.route('/', methods=['GET', 'POST'], endpoint='index')
+@login_required
+def index():
+    instances = []  # To store instance details
+    # Fetch all instances from the database
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT instance_id, instance_name, public_ip, ports, username, password, auto_terminate_time, launch_time
+        FROM instances
+    """)
+    db_instances = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # Calculate remaining time for each instance
+    for instance in db_instances:
+        instance_id, instance_name, public_ip, ports, username, password, auto_terminate_time, launch_time = instance
+        expiration_time = launch_time + timedelta(hours=auto_terminate_time)
+        remaining_time = max(expiration_time - datetime.utcnow(), timedelta(0))  # Ensure no negative time
+        remaining_time_str = str(remaining_time).split('.')[0]  # Format as HH:MM:SS
+        instances.append({
+            'instance_id': instance_id,
+            'instance_name': instance_name,
+            'public_ip': public_ip,
+            'ports': ports,
+            'username': username,
+            'password': password,
+            'auto_terminate_time': auto_terminate_time,
+            'remaining_time': remaining_time_str,
+            'launch_time': launch_time.isoformat()  # Pass launch_time in ISO format for JavaScript
+        })
+
+    # Initialize form_data as an empty dictionary
+    form_data = {}
+    if request.method == 'POST':
+        try:
+            # Retrieve form data
+            num_instances = request.form.get('num_instances', '').strip()
+            instance_names = request.form.getlist('instance_name')
+            ports = request.form.getlist('ports')
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
+            auto_terminate_time = request.form.get('auto_terminate_time', '').strip()
+
+            # Preserve form data in case of errors
+            form_data = {
+                'num_instances': num_instances,
+                'instance_names': instance_names,
+                'ports': ports,
+                'username': username,
+                'password': password,
+                'auto_terminate_time': auto_terminate_time
+            }
+
+            # Validate inputs
+            if not num_instances.isdigit() or not (1 <= int(num_instances) <= 5):
+                flash("Invalid number of instances. Must be between 1 and 5.", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+            if len(instance_names) != int(num_instances) or any(not name.strip() for name in instance_names):
+                flash("All instance names are required.", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+            if len(ports) != int(num_instances) or any(not port.strip() for port in ports):
+                flash("All ports are required.", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+            if not username:
+                flash("Sudo username is required.", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+            if not password:
+                flash("Password is required.", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+
+            # Convert auto-terminate time from minutes to hours
+            if not auto_terminate_time.isdigit() or not (1 <= int(auto_terminate_time) <= 1440):  # 1440 minutes = 24 hours
+                flash("Invalid auto-terminate time. Must be between 1 minute and 1440 minutes (24 hours).", "error")
+                return render_template('index.html', instances=instances, form_data=form_data)
+            auto_terminate_time_hours = int(auto_terminate_time) / 60  # Convert minutes to hours
+
+            # Proceed with launching instances
+            num_instances = int(num_instances)
+            region = "ap-southeast-5"
+            key_name = "rmsmy"
+            user_data = f"""#!/bin/bash
+            useradd -m -s /bin/bash -p $(openssl passwd -1 {password}) {username}
+            usermod -aG wheel {username}
+            echo "{username} ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/{username}
+            sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            sudo systemctl restart sshd
+            """
+
+            security_group_ids = []
+            ec2_client = boto3.client('ec2', region_name=region)
+            for i in range(num_instances):
+                instance_name = instance_names[i]
+                port_list = [int(port.strip()) for port in ports[i].split(",") if port.strip()]
+                if 22 not in port_list:
+                    port_list.append(22)
+                timestamp = int(time.time())
+                sg_name = f"{instance_name}-sg-{timestamp}"
+                sg_response = ec2_client.create_security_group(
+                    GroupName=sg_name,
+                    Description=f"Security group for {instance_name}"
+                )
+                security_group_id = sg_response['GroupId']
+                security_group_ids.append(security_group_id)
+                for port in port_list:
+                    ec2_client.authorize_security_group_ingress(
+                        GroupId=security_group_id,
+                        IpPermissions=[{'IpProtocol': 'tcp', 'FromPort': port, 'ToPort': port, 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}]
+                    )
+
+            # Launch instances
+            instances = []
+            for i in range(num_instances):
+                instance = ec2_client.run_instances(
+                    ImageId='ami-0742a9acc3cfa7a10',
+                    InstanceType='t3.micro',
+                    MinCount=1,
+                    MaxCount=1,
+                    KeyName=key_name,
+                    UserData=user_data,
+                    SecurityGroupIds=[security_group_ids[i]],
+                    TagSpecifications=[
+                        {
+                            'ResourceType': 'instance',
+                            'Tags': [{'Key': 'Name', 'Value': instance_names[i]}]
+                        }
+                    ]
+                )
+                instances.append(instance)
+
+            # Store details in DB
+            conn = get_db_connection()
+            cur = conn.cursor()
+            for i, instance in enumerate(instances):  # Iterate through the instances list
+                instance_id = instance['Instances'][0]['InstanceId']  # Get the instance ID
+                instance_name = instance_names[i]
+                # Parse ports for the current instance
+                current_port_list = [int(port.strip()) for port in ports[i].split(",") if port.strip()]
+                if 22 not in current_port_list:
+                    current_port_list.append(22)
+                port_list_str = ",".join(map(str, current_port_list))  # Convert list to comma-separated string
+                launch_time = datetime.utcnow()  # Record the launch time
+
+                # Debugging log
+                print(f"Instance {instance_name}:")
+                print(f"  Auto-Terminate Time (hours): {auto_terminate_time_hours}")
+                print(f"  Launch Time: {launch_time}")  # Ensure launch_time is defined here
+
+                cur.execute("""
+                    INSERT INTO instances (instance_name, instance_id, public_ip, ports, username, password, auto_terminate_time, launch_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (instance_name, instance_id, "pending", port_list_str, username, password, auto_terminate_time_hours, launch_time))
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            # Update public IPs immediately
+            update_public_ips()
+            flash(f"{num_instances} instances launched successfully!", "success")
+            return redirect(url_for('index'))
+        except Exception as e:
+            flash(f"Error launching instances: {str(e)}", "error")
+            return render_template('index.html', instances=instances, form_data=form_data)
+
+    # Pass form_data to the template even if it's empty
+    return render_template('index.html', instances=instances, form_data=form_data)
+
+# Function to terminate expired instances
+def terminate_expired_instances():
+    ec2_client = boto3.client('ec2', region_name="ap-southeast-5")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Fetch all instances from the database
+    cur.execute("""
+        SELECT instance_id, instance_name, auto_terminate_time, launch_time
+        FROM instances
+    """)
+    db_instances = cur.fetchall()
+    for instance in db_instances:
+        instance_id, instance_name, auto_terminate_time, launch_time = instance
+        expiration_time = launch_time + timedelta(hours=auto_terminate_time)
+        # Check if the instance has expired
+        if datetime.utcnow() > expiration_time:
+            try:
+                # Terminate the instance
+                ec2_client.terminate_instances(InstanceIds=[instance_id])
+                # Wait for the instance to be terminated
+                waiter = ec2_client.get_waiter('instance_terminated')
+                waiter.wait(InstanceIds=[instance_id])
+                # Delete associated Security Group
+                try:
+                    sg_response = ec2_client.describe_security_groups(
+                        Filters=[{'Name': 'group-name', 'Values': [f"{instance_name}-sg-*"]}]
+                    )
+                    for sg in sg_response['SecurityGroups']:
+                        ec2_client.delete_security_group(GroupId=sg['GroupId'])
+                except ClientError as e:
+                    print(f"Error deleting Security Group for instance {instance_id}: {e}")
+                # Delete the instance from the database
+                cur.execute("DELETE FROM instances WHERE instance_id = %s", (instance_id,))
+                conn.commit()
+                print(f"Instance {instance_id} terminated successfully.")
+            except Exception as e:
+                print(f"Error terminating instance {instance_id}: {e}")
+    cur.close()
+    conn.close()
+
+# Terminate instance route
+@app.route('/terminate/<instance_id>', endpoint='terminate')
+@login_required
+def terminate(instance_id):
+    try:
+        # Terminate EC2 instance and delete related resources
+        ec2_client = boto3.client('ec2', region_name="ap-southeast-5")
+
+        # Terminate the instance
+        ec2_client.terminate_instances(InstanceIds=[instance_id])
+        # Wait for the instance to be terminated
+        waiter = ec2_client.get_waiter('instance_terminated')
+        waiter.wait(InstanceIds=[instance_id])
+
+        # Delete associated Security Group
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT instance_name FROM instances WHERE instance_id = %s", (instance_id,))
+        instance_name = cur.fetchone()[0]
+        cur.execute("DELETE FROM instances WHERE instance_id = %s", (instance_id,))
+        conn.commit()
+
+        # Find and delete the Security Group
+        try:
+            sg_response = ec2_client.describe_security_groups(
+                Filters=[{'Name': 'group-name', 'Values': [f"{instance_name}-sg-*"]}]
+            )
+            for sg in sg_response['SecurityGroups']:
+                ec2_client.delete_security_group(GroupId=sg['GroupId'])
+        except ClientError as e:
+            print(f"Error deleting Security Group for instance {instance_id}: {e}")
+
+        flash(f"Instance {instance_id} terminated successfully!", "success")
+    except Exception as e:
+        flash(f"Error terminating instance: {str(e)}", "error")
+
+    # Redirect back to the main page
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)  

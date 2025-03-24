@@ -1,0 +1,168 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9; /* Light background color */
+    color: #333; /* Default text color */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #007bff; /* Blue header background */
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.header .logo img {
+    max-width: 150px;
+    cursor: pointer;
+}
+
+.header .logout a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.header .logout a:hover {
+    text-decoration: none;
+    color: #ffcc00; /* Highlight on hover */
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Form Section */
+form {
+    width: 100%;
+    max-width: 600px; /* Limit form width for better alignment */
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    display: block;
+    width: 100%;
+    margin: 20px auto 0;
+    padding: 10px;
+    background-color: #28a745; /* Green button color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+button:disabled {
+    background-color: #ccc; /* Gray out disabled buttons */
+    cursor: not-allowed;
+}
+
+/* Table Section */
+table {
+    width: 100%;
+    max-width: 800px; /* Limit table width for better alignment */
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff; /* Blue header for table */
+    color: white;
+}
+
+td {
+    background-color: #f9f9f9; /* Light gray background for table rows */
+}
+
+/* Zebra Striping for Table Rows */
+tbody tr:nth-child(even) td {
+    background-color: #e9ecef; /* Alternate row color */
+}
+
+td a {
+    color: #28a745; /* Green link color */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    form, table {
+        width: 90%; /* Adjust width for smaller screens */
+    }
+}
+
+.sandbox-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the left */
+    margin-left: 20px; /* Add some left margin */
+}
+
+.sandbox-button {
+    display: inline-block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #28a745; /* Green button color */
+    color: white;
+    text-align: left;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.sandbox-button:hover {
+    background-color: #218838; /* Darker green on hover */
+    text-decoration: none;
+}

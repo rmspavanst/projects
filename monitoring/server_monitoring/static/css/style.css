@@ -1,0 +1,150 @@
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    background-color: #2c3e50;
+    padding: 20px;
+    color: #ecf0f1;
+    z-index: 1000;
+    transition: all 0.3s;
+}
+
+.sidebar .logo {
+    width: 100px;
+    margin-bottom: 20px;
+}
+
+.sidebar .nav-link {
+    color: #bdc3c7;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    font-size: 16px;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background-color: #34495e;
+}
+
+.content {
+    margin-left: 220px;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    text-align: left;
+    padding: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table th {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
+
+.ip-link {
+    text-decoration: none;
+}
+
+.ip-link:hover {
+    text-decoration: underline;
+}
+
+.form-full .form-group {
+    margin-bottom: 15px;
+}
+
+.form-full label {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.form-full .form-control {
+    height: 40px;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.form-full .btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+pre {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+/* Responsive Styles */
+@media (max-width: 767.98px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 10px;
+    }
+
+    .sidebar.collapsed {
+        display: none;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .form-full .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .form-full .form-control {
+        font-size: 14px;
+    }
+
+    .table-responsive {
+        font-size: 12px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .navbar-brand .logo {
+        width: 60px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .sidebar {
+        width: 150px;
+    }
+
+    .content {
+        margin-left: 170px;
+    }
+
+    .form-full .form-control {
+        font-size: 15px;
+    }
+
+    .form-full .btn {
+        padding: 8px 15px;
+    }
+}

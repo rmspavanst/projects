@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}Analytics{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total Servers</h3>
+            <p>{{ total_servers }}</p>
+            <span class="trend up">+8%</span>
+        </div>
+        <div class="stat-card">
+            <h3>Online Servers</h3>
+            <p>{{ online_servers }}</p>
+            <span class="trend down">-48%</span>
+        </div>
+        <div class="stat-card">
+            <h3>Offline Servers</h3>
+            <p>{{ offline_servers }}</p>
+            <span class="trend up">+21%</span>
+        </div>
+    </div>
+
+    <div class="recent-activities">
+        <h3>New Users</h3>
+        <ul>
+            {% for activity in recent_activities %}
+            <li>
+                <img src="https://via.placeholder.com/40" alt="User Avatar">
+                <div>
+                    <span>{{ activity.user }}</span>
+                    <small>{{ activity.time }}</small>
+                </div>
+            </li>
+            {% endfor %}
+            <li class="more"><a href="#">More</a></li>
+        </ul>
+    </div>
+
+    <div class="recent-orders">
+        <h3>Recent Orders</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Name</th>
+                    <th>Course Number</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td>{{ order.course_name }}</td>
+                    <td>{{ order.course_number }}</td>
+                    <td>{{ order.payment }}</td>
+                    <td class="status {{ order.status.lower() }}">{{ order.status }}</td>
+                    <td><a href="#">Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="#" class="show-all">Show All</a>
+    </div>
+
+    <div class="reminders">
+        <h3>Reminders</h3>
+        <div class="reminder-card">
+            <i class="fas fa-microphone"></i>
+            <div>
+                <span>Workshop</span>
+                <small>08:00 AM - 12:00 PM</small>
+            </div>
+        </div>
+        <div class="reminder-card">
+            <i class="fas fa-microphone"></i>
+            <div>
+                <span>Workshop</span>
+                <small>08:00 AM - 12:00 PM</small>
+            </div>
+        </div>
+        <button class="add-reminder">+ Add Reminder</button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="display: flex; gap: 20px; padding: 20px;">
+    <!-- Left Section: Launch New Instances Form -->
+    <div style="flex: 1; max-width: 25%; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f9f9f9;">
+        <h2 style="text-align: left; margin-bottom: 20px;">Launch Instances</h2>
+        <!-- Display Flashed Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for category, message in messages %}
+            <div style="color: {% if category == 'success' %}green{% else %}red{% endif %}; padding: 10px; margin: 5px 0; border-radius: 4px; background-color: #fff;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" id="launch-form" style="display: grid; gap: 15px;">
+            <label for="num_instances">Number of Instances (1-5): <span style="color: red;">*</span></label>
+            <input type="number" id="num_instances" name="num_instances" min="1" max="5" required placeholder="Enter number of instances (1-5)" value="{{ form_data.num_instances|default('') }}" style="width: 80%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
+        
+            <div id="instance_fields" style="display: grid; gap: 5px;">
+                {% for i in range(form_data.num_instances|default(0)|int) %}
+                <label for="instance_name_{{ i+1 }}">Instance Name {{ i+1 }}: <span style="color: red;">*</span></label>
+                <input type="text" id="instance_name_{{ i+1 }}" name="instance_name" required placeholder="Enter instance name" value="{{ form_data.instance_names[i]|default('') }}" style="width: 50%; padding: 3px; border: 1px solid #ccc; border-radius: 2px; box-sizing: border-box;">
+                <label for="ports_{{ i+1 }}">Ports to Allow {{ i+1 }} (comma-separated): <span style="color: red;">*</span></label>
+                <input type="text" id="ports_{{ i+1 }}" name="ports" placeholder="e.g., 22,80,443" required value="{{ form_data.ports[i]|default('') }}" style="width: 50%; padding: 3px; border: 1px solid #ccc; border-radius: 2px; box-sizing: border-box;">
+                {% endfor %}
+            </div>
+        
+            <label for="username">Sudo Username: <span style="color: red;">*</span></label>
+            <input type="text" id="username" name="username" required placeholder="Enter sudo username" value="{{ form_data.username|default('') }}" style="width: 80%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
+        
+            <label for="password">Password: <span style="color: red;">*</span></label>
+            <input type="password" id="password" name="password" required placeholder="Enter password" value="{{ form_data.password|default('') }}" style="width: 80%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
+        
+            <label for="auto_terminate_time">Auto-Terminate Time (1 to 24hrs): *</label>
+            <input type="number" id="auto_terminate_time" name="auto_terminate_time" min="1" max="24" required placeholder="Enter hours min:1 max:24" value="{{ form_data.auto_terminate_time }}" style="width: 80%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;" required><br>
+             
+            <button type="submit" onclick="disableLaunchButton()" style="padding: 5px; width: 70%; background-color: #007bff; color: white; border: none; border-radius: 2px; cursor: pointer; margin-left: 0; float: left;">
+                Launch
+            </button>
+        </form>
+        <script>
+            const numInstancesInput = document.getElementById('num_instances');
+            const instanceFieldsDiv = document.getElementById('instance_fields');
+            numInstancesInput.addEventListener('input', () => {
+                const numInstances = parseInt(numInstancesInput.value);
+                instanceFieldsDiv.innerHTML = ''; // Clear previous fields
+                for (let i = 1; i <= numInstances; i++) {
+                    instanceFieldsDiv.innerHTML += `
+                        <label for="instance_name_${i}">Instance Name ${i}: <span style="color: red;">*</span></label>
+                        <input type="text" id="instance_name_${i}" name="instance_name" required placeholder="Enter instance name" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                        <label for="ports_${i}">Ports to Allow ${i} (comma-separated): <span style="color: red;">*</span></label>
+                        <input type="text" id="ports_${i}" name="ports" placeholder="e.g., 22,80,443" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                    `;
+                }
+            });
+            function disableLaunchButton() {
+                const form = document.getElementById('launch-form');
+                const button = form.querySelector('button[type="submit"]');
+                button.textContent = 'Launching...';
+                button.disabled = true;
+                form.submit();
+            }
+        </script>
+    </div>
+    <!-- Right Section: Launched Instances Table -->
+    <div style="flex: 1; max-width: 90%; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f9f9f9;">
+        <h2 style="text-align: left; margin-bottom: 20px;">Launched Instances</h2>
+        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; background-color: #fff;">
+            <thead>
+                <tr>
+                    <th style="width: 10%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Instance Name</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Instance ID</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Public IP</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Ports</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Username</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Password</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Auto-Terminate Time</th>
+                    <th style="width: 15%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Remaining Time</th>
+                    <th style="width: 10%; padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="instances-table-body">
+                {% for instance in instances %}
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.instance_name }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.instance_id }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.public_ip }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.ports }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.username }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.password }}</td>
+                    <td style="padding: 15px; border: 1px solid #ddd; word-wrap: break-word;">{{ instance.auto_terminate_time | default(0) | round(2) }} hours</td>
+                    <td id="remaining-time-{{ instance.instance_id }}" style="padding: 10px; border: 1px solid #ddd;">{{ instance.remaining_time }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <a href="/terminate/{{ instance.instance_id }}" onclick="disableTerminateButton(this)" style="color: #007bff; text-decoration: none; font-weight: bold;">Terminate</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+  
+    // Function to calculate remaining time
+    function calculateRemainingTime(launchTimeLocal, autoTerminateTime) {
+      const launchDate = new Date(launchTimeLocal); // Parse the launch time (local time)
+      const expirationTime = new Date(launchDate.getTime() + (autoTerminateTime * 60 * 60 * 1000) - 1000); // Subtract 1 second
+      const now = new Date(); // Current local time
+      const remainingMilliseconds = expirationTime - now;
+  
+      if (remainingMilliseconds <= 0) {
+        return "00:00:00"; // Expired
+      }
+  
+      // Convert remaining time to HH:MM:SS
+      const hours = Math.floor(remainingMilliseconds / (1000 * 60 * 60));
+      const minutes = Math.floor((remainingMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remainingMilliseconds % (1000 * 60)) / 1000);
+  
+      // Format as HH:MM:SS with leading zeros
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+  
+    // Function to update all remaining times
+    function updateRemainingTimes() {
+      const instances = {{ instances | tojson }}; // Pass instances data from Flask to JavaScript
+      instances.forEach(instance => {
+        const rowId = `remaining-time-${instance.instance_id}`; // Unique ID for each row
+        const remainingTimeElement = document.getElementById(rowId);
+        if (remainingTimeElement) {
+          const remainingTime = calculateRemainingTime(instance.launch_time, instance.auto_terminate_time);
+          remainingTimeElement.textContent = remainingTime;
+        }
+      });
+    }
+  
+    // Start updating remaining times every second
+    setInterval(updateRemainingTimes, 1000);
+
+
+    // Disable terminate button after click
+    function disableTerminateButton(button) {
+        button.textContent = 'Terminating...';
+        button.style.pointerEvents = 'none'; // Disable further clicks
+        button.style.color = 'gray'; // Change color to indicate disabled state
+    }
+</script>
+{% endblock %}

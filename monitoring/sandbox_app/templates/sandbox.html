@@ -1,0 +1,166 @@
+<!-- templates/sandbox.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1>Sandbox Environments</h1>
+<div style="display: flex; gap: 20px; padding: 20px;">
+    <!-- Left Section: Launch Form -->
+    <div style="flex: 1; max-width: 25%; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f9f9f9;">
+        <h2 style="text-align: left; margin-bottom: 20px;">Launch Instances</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for category, message in messages %}
+            <div style="color: {% if category == 'success' %}green{% else %}red{% endif %}; padding: 10px; margin: 5px 0; border-radius: 4px; background-color: #fff;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" id="sandboxForm" style="display: grid; gap: 15px;">
+            <label for="sandbox_type">Sandbox Type: <span style="color: red;">*</span></label>
+            <select name="sandbox_type" id="sandboxType" onchange="toggleFields()" style="width: 80%; padding: 5px;" required>
+                <option value="" disabled selected>Select Sandbox Type</option>
+                {% for sandbox in allowed_sandboxes %}
+                <option value="{{ sandbox }}">{{ sandbox }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="num_instances">Number of Instances (1-5): <span style="color: red;">*</span></label>
+            <input type="number" id="num_instances" name="num_instances" min="1" max="5" required style="width: 80%; padding: 5px;" onchange="updateInstanceFields()">
+
+            <div id="instance_fields" style="display: grid; gap: 5px;"></div>
+
+            <div id="vagrant_fields" style="display: none;">
+                <label for="os_type">Operating System: <span style="color: red;">*</span></label>
+                <select name="os_type" id="os_type" style="width: 80%; padding: 5px;">
+                    <option value="centos/8">CentOS 8</option>
+                    <option value="rockylinux/8">Rocky Linux 8</option>
+                    <option value="rockylinux/9">Rocky Linux 9</option>
+                    <option value="ubuntu/bionic64">Ubuntu 18.04</option>
+                    <option value="ubuntu/focal64">Ubuntu 20.04</option>
+                    <option value="ubuntu/jammy64">Ubuntu 22.04</option>
+                </select>
+            </div>
+
+            <div id="aws_fields" style="display: none;">
+                <label for="username">Sudo Username: <span style="color: red;">*</span></label>
+                <input type="text" name="username" id="username" style="width: 80%; padding: 5px;">
+                <label for="password">Password: <span style="color: red;">*</span></label>
+                <input type="password" name="password" id="password" style="width: 80%; padding: 5px;">
+            </div>
+
+            <label for="auto_terminate_hours">Auto-Terminate Time (1-24 hrs): <span style="color: red;">*</span></label>
+            <input type="number" name="auto_terminate_hours" min="1" max="24" required style="width: 80%; padding: 5px;">
+
+            <button type="submit" id="launchButton" style="padding: 5px; width: 70%; background-color: #007bff; color: white; border: none; border-radius: 2px; cursor: pointer;">
+                Launch Instances
+            </button>
+        </form>
+    </div>
+
+    <!-- Right Section: Instances Table -->
+    <div style="flex: 1; max-width: 70%; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f9f9f9;">
+        <h2 style="text-align: left; margin-bottom: 20px;">Running Instances</h2>
+        <table style="width: 100%; border-collapse: collapse; background-color: #fff;">
+            <thead>
+                <tr>
+                    {% if current_user.is_admin %}<th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Owner</th>{% endif %}
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Instance Name</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Instance ID</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Public IP</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Ports</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Username</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Password</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Auto-Terminate</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Remaining Time</th>
+                    <th style="padding: 10px; border: 1px solid #ddd; background-color: #007bff; color: white;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="instances-table-body">
+                {% for item in instances_with_owners %}
+                <tr>
+                    {% if current_user.is_admin %}<td style="padding: 10px; border: 1px solid #ddd;">{{ item.owner }}</td>{% endif %}
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.instance_name }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.instance_id }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.public_ip }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.ports|default('N/A') }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.username }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.password }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.instance.auto_terminate_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ item.remaining_time }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <a href="{{ url_for('terminate_instance', id=item.instance.id) }}" onclick="disableTerminateButton(this)" style="color: #007bff; text-decoration: none; font-weight: bold;">Terminate</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if logs %}
+<h2>Creation Logs</h2>
+<pre>{% for line in logs %}{{ line }}{% endfor %}</pre>
+{% endif %}
+
+<script>
+function toggleFields() {
+    const sandboxType = document.getElementById('sandboxType').value;
+    document.getElementById('vagrant_fields').style.display = sandboxType === 'Vagrant' ? 'block' : 'none';
+    document.getElementById('aws_fields').style.display = sandboxType === 'AWS' ? 'block' : 'none';
+    updateInstanceFields();
+
+    // Set required attributes based on sandbox type
+    const osType = document.getElementById('os_type');
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    if (sandboxType === 'Vagrant') {
+        osType.required = true;
+        username.required = false;
+        password.required = false;
+    } else if (sandboxType === 'AWS') {
+        osType.required = false;
+        username.required = true;
+        password.required = true;
+    } else {
+        osType.required = false;
+        username.required = false;
+        password.required = false;
+    }
+}
+
+function updateInstanceFields() {
+    const sandboxType = document.getElementById('sandboxType').value;
+    const numInstances = parseInt(document.getElementById('num_instances').value) || 0;
+    const container = document.getElementById('instance_fields');
+    container.innerHTML = '';
+    if (numInstances > 5) {
+        alert('Maximum 5 instances allowed!');
+        document.getElementById('num_instances').value = 5;
+        return;
+    }
+    for (let i = 0; i < numInstances; i++) {
+        container.innerHTML += `
+            <label>Instance Name ${i + 1}: <span style="color: red;">*</span></label>
+            <input type="text" name="instance_names" required style="width: 80%; padding: 5px;">
+            ${sandboxType === 'AWS' ? `
+                <label>Ports ${i + 1} (comma-separated): <span style="color: red;">*</span></label>
+                <input type="text" name="ports" placeholder="e.g., 22,80,443" required style="width: 80%; padding: 5px;">
+            ` : ''}
+        `;
+    }
+}
+
+function disableTerminateButton(button) {
+    button.textContent = 'Terminating...';
+    button.style.pointerEvents = 'none';
+    button.style.color = 'gray';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleFields();
+    updateInstanceFields();
+});
+</script>
+{% endblock %}

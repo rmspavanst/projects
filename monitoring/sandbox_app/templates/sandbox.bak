@@ -1,0 +1,139 @@
+<!-- templates/sandbox.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1>Sandbox Environments</h1>
+<form method="POST" id="sandboxForm" onsubmit="disableSubmitButton()">
+    <label>Sandbox Type:</label><br>
+    <select name="sandbox_type" id="sandboxType" onchange="toggleVagrantFields()">
+        {% for sandbox in allowed_sandboxes %}
+        <option value="{{ sandbox }}">{{ sandbox }}</option>
+        {% endfor %}
+    </select><br><br>
+
+    <div id="commonFields">
+        <label>Number of Instances (1-5):</label><br>
+        <input type="number" name="num_instances" id="numInstances" min="1" max="5" required onchange="updateInstanceNames()"><br><br>
+
+        <div id="instanceNamesContainer">
+            <label>Instance Names:</label><br>
+            <div id="instanceNames"></div>
+        </div><br>
+
+        <label>Auto-Terminate Time (hours, max 24):</label><br>
+        <input type="number" name="auto_terminate_hours" min="1" max="24" required><br><br>
+    </div>
+
+    <div id="vagrantFields" style="display: none;">
+        <label>Operating System:</label><br>
+        <select name="os_type">
+            <option value="centos/8">CentOS 8</option>
+            <option value="rockylinux/8">Rocky Linux 8</option>
+            <option value="rockylinux/9">Rocky Linux 9</option>
+        <!--    <option value="ubuntu/bionic64">Ubuntu 18.04</option>
+            <option value="ubuntu/focal64">Ubuntu 20.04</option>
+            <option value="ubuntu/jammy64">Ubuntu 22.04</option> -->
+        </select><br><br>
+    </div>
+
+    <button type="submit" id="launchButton">Launch Instances</button>
+</form>
+
+{% if logs %}
+<h2>Creation Logs</h2>
+<pre>
+{% for line in logs %}
+{{ line }}
+{% endfor %}
+</pre>
+{% endif %}
+
+<h2>Running Instances</h2>
+<table border="1">
+    <tr>
+        {% if current_user.is_admin %}
+        <th>Owner</th>
+        {% endif %}
+        <th>Instance Name</th>
+        <th>Instance ID</th>
+        <th>Public IP</th>
+        <th>Username</th>
+        <th>Password</th>
+        <th>Auto-Terminate</th>
+        <th>Action</th>
+    </tr>
+    {% for instance in instances %}
+        {% if instance.status == 'running' %}
+        <tr>
+            {% if current_user.is_admin %}
+            <td>{{ User.query.get(instance.user_id).username }}</td>
+            {% endif %}
+            <td>{{ instance.instance_name }}</td>
+            <td>{{ instance.instance_id }}</td>
+            <td>{{ instance.public_ip }}</td>
+            <td>{{ instance.username }}</td>
+            <td>{{ instance.password }}</td>
+            <td>{{ instance.auto_terminate_time }}</td>
+            <td><a href="{{ url_for('terminate_instance', id=instance.id) }}" onclick="return confirm('Are you sure?')">Terminate</a></td>
+        </tr>
+        {% endif %}
+    {% endfor %}
+</table>
+
+<script>
+function toggleVagrantFields() {
+    const sandboxType = document.getElementById('sandboxType').value;
+    const vagrantFields = document.getElementById('vagrantFields');
+    vagrantFields.style.display = sandboxType === 'Vagrant' ? 'block' : 'none';
+}
+
+function updateInstanceNames() {
+    const numInstances = parseInt(document.getElementById('numInstances').value) || 0;
+    const container = document.getElementById('instanceNames');
+    container.innerHTML = '';
+
+    if (numInstances > 5) {
+        alert('Maximum 5 instances allowed!');
+        document.getElementById('numInstances').value = 5;
+        return;
+    }
+
+    for (let i = 0; i < numInstances; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'instance_names';
+        input.required = true;
+        input.placeholder = `Instance ${i + 1} Name`;
+        container.appendChild(input);
+        container.appendChild(document.createElement('br'));
+    }
+}
+
+function disableSubmitButton() {
+    const button = document.getElementById('launchButton');
+    button.disabled = true;
+    button.textContent = 'Launching...';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleVagrantFields();
+    updateInstanceNames();
+});
+</script>
+{% endblock %}
+
+
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "{os_type}"
+  config.vm.network "public_network", bridge: "ens18", use_dhcp_assigned_default_route: true
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "{instance_name}"
+    vb.memory = "2048"
+    vb.cpus = 1
+  end
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+  SHELL
+end
+"""
